@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pantry Chef — Interactive Ingredient-Driven Recipe Alchemist, Chemistry Lab &amp; Multi-Timer Kitchen Studio</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <!-- Top Editorial Header & Navigation -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-logo" aria-hidden="true">🥘</div>
+      <div>
+        <div class="brand-title-row">
+          <h1 class="brand-title">Pantry Chef</h1>
+          <span class="brand-badge">Michelin Kitchen &amp; Zero-Waste Alchemist</span>
+        </div>
+        <p class="brand-subtitle">120+ Pantry Ingredients · 82 Authentic Global Recipes · Real-Time Reactive Meal Discovery</p>
+      </div>
+    </div>
+
+    <nav class="main-nav" aria-label="Primary Navigation">
+      <button id="navAlchemistBtn" class="nav-tab active" data-view="alchemist" type="button">
+        <span>🧊</span> Pantry &amp; Meals
+        <span id="matchingMealsNavBadge" class="nav-pill-badge">0</span>
+      </button>
+      <button id="navSubstitutionsBtn" class="nav-tab" data-view="substitutions" type="button">
+        <span>🧪</span> Chemistry Lab
+      </button>
+      <button id="navKitchenBtn" class="nav-tab" data-view="kitchen" type="button">
+        <span>👨‍🍳</span> Kitchen Mode
+        <span id="activeTimerCountBadge" class="nav-pill-badge hidden">0</span>
+      </button>
+      <button id="navGroceryBtn" class="nav-tab" data-view="grocery" type="button">
+        <span>🛒</span> Grocery &amp; Prep
+        <span id="groceryCountBadge" class="nav-pill-badge">0</span>
+      </button>
+      <button id="navSettingsBtn" class="nav-tab" data-view="settings" type="button">
+        <span>⚙️</span> Settings
+      </button>
+    </nav>
+
+    <div class="topbar-actions">
+      <div id="fridgeSummaryPill" class="fridge-summary-pill" title="Active items selected in your pantry">
+        <span>🧺 <strong id="headerPantryCount">0</strong> Ingredients Selected</span>
+        <span class="pill-divider">|</span>
+        <span class="urgent-text">🔥 <strong id="headerUrgentCount">0</strong> Use Today</span>
+      </div>
+      <button id="openScannerModalBtn" class="btn btn-accent" type="button">
+        📸 Scan Fridge Photo
+      </button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    <!-- ==================== VIEW 1: PANTRY WORKBENCH & REACTIVE RECIPE FEED ==================== -->
+    <section id="view-alchemist" class="view-section active" aria-label="Pantry Workbench and Auto-Populating Recipe Feed">
+      <!-- Two-Column Workspace: Left = Interactive Pantry Workbench | Right = Live Auto-Populating Recipe Feed -->
+      <div class="alchemist-grid">
+        <!-- LEFT SIDEBAR: INTERACTIVE PANTRY WORKBENCH -->
+        <aside class="fridge-panel card">
+          <div class="panel-header-row">
+            <div>
+              <span class="section-eyebrow">INTERACTIVE PANTRY DRAWER</span>
+              <h2 class="panel-title">Select Ingredients You Have</h2>
+            </div>
+            <div class="drawer-header-actions">
+              <span id="drawerSelectedBadge" class="selected-counter-badge">0 Selected</span>
+              <button id="clearFridgeBtn" class="btn btn-ghost btn-sm" type="button">Clear All</button>
+            </div>
+          </div>
+
+          <p class="helper-caption">
+            Tap any ingredient below to toggle it in your kitchen. Meals that use your selected ingredients auto-populate on the right immediately!
+          </p>
+
+          <!-- Selected Pantry Shelf -->
+          <div id="activeFridgeShelf" class="active-fridge-shelf" aria-live="polite"></div>
+
+          <!-- Search & Category Filter Tabs -->
+          <div class="picker-controls">
+            <div class="search-box">
+              <span class="search-icon" aria-hidden="true">🔍</span>
+              <input
+                id="ingredientSearchInput"
+                type="search"
+                placeholder="Filter 120 ingredients (eggs, chicken, garlic, rice, avocado, miso...)"
+                aria-label="Filter ingredients"
+              />
+            </div>
+            <div id="categoryTabs" class="category-tabs" role="tablist"></div>
+          </div>
+
+          <!-- Visual Ingredient Chips Grid -->
+          <div id="ingredientChipGrid" class="ingredient-chip-grid"></div>
+
+          <hr class="panel-divider" />
+
+          <!-- Optional Quick Fridge Presets & Photo Scanner -->
+          <div class="presets-compact-section">
+            <div class="presets-header-compact">
+              <span class="section-eyebrow">OPTIONAL · 1-CLICK DEMO BASKETS &amp; AI PHOTO SCAN</span>
+              <div class="scanner-quick-actions">
+                <label for="fridgePhotoInput" class="btn btn-secondary btn-xs file-label-btn">
+                  📤 Upload Photo
+                  <input id="fridgePhotoInput" type="file" accept="image/*" hidden />
+                </label>
+                <button id="scanSamplePhotoBtn" class="btn btn-secondary btn-xs" type="button">
+                  ✨ Scan Sample Fridge
+                </button>
+              </div>
+            </div>
+            <div id="presetBar" class="preset-grid" role="list"></div>
+          </div>
+        </aside>
+
+        <!-- RIGHT MAIN STAGE: LIVE AUTO-POPULATING RECIPE FEED -->
+        <div class="recipes-column">
+          <!-- Controls Card: Live Match Counter, Quick Filters & Portion Scaler -->
+          <div class="controls-bar card">
+            <div class="controls-top-row">
+              <div>
+                <span class="section-eyebrow">LIVE REACTIVE CULINARY ENGINE · ZERO PRESUMED DEFAULTS</span>
+                <div class="feed-headline-row">
+                  <h2 id="feedHeadlineTitle" class="panel-title">Auto-Populating Recipe Matches</h2>
+                  <span id="liveMatchCountPill" class="live-match-pill">0 Matching Meals</span>
+                </div>
+              </div>
+
+              <!-- Dynamic Portion Scaler (1x to 8x) -->
+              <div class="portion-scaler-box" aria-label="Dynamic Portion Scaler">
+                <span class="scaler-label">🍽️ Scale Servings:</span>
+                <div id="servingsButtonGroup" class="servings-btn-group">
+                  <button type="button" class="serving-btn" data-servings="1">1×</button>
+                  <button type="button" class="serving-btn active" data-servings="2">2×</button>
+                  <button type="button" class="serving-btn" data-servings="4">4×</button>
+                  <button type="button" class="serving-btn" data-servings="6">6×</button>
+                  <button type="button" class="serving-btn" data-servings="8">8×</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="filterChipBar" class="filter-chip-bar"></div>
+          </div>
+
+          <!-- Waste-Saver & Match Summary Banner (shown only when ingredients are selected) -->
+          <div id="wasteImpactBanner" class="waste-impact-banner hidden"></div>
+
+          <!-- Ranked Recipe Cards OR Empty Kitchen Canvas Prompt -->
+          <div id="recipeCardsGrid" class="recipe-cards-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 2: CULINARY CHEMISTRY SUBSTITUTION ENGINE ==================== -->
+    <section id="view-substitutions" class="view-section" aria-label="Culinary Chemistry Substitution Alchemist">
+      <div class="card section-hero-card">
+        <div class="section-hero-header">
+          <div>
+            <span class="section-eyebrow">FOOD SCIENCE &amp; MOLECULAR CULINARY ALCHEMY</span>
+            <h2 class="section-title">🧪 Culinary Chemistry Substitution Engine</h2>
+            <p class="section-desc">
+              Missing a critical ingredient mid-recipe? Select any ingredient below to see exact culinary-science substitutes
+              ranked by what you have marked in your pantry—complete with food chemistry explanations (acid-protein coagulation,
+              amylopectin gelatinization, glutamate umami synergy, and lipid emulsification).
+            </p>
+          </div>
+        </div>
+
+        <div id="chemMissingSelector" class="chem-missing-selector"></div>
+      </div>
+
+      <div id="chemDetailContainer" class="chem-detail-grid"></div>
+    </section>
+
+    <!-- ==================== VIEW 3: HANDS-FREE KITCHEN MODE & MULTI-TIMER DECK ==================== -->
+    <section id="view-kitchen" class="view-section" aria-label="Interactive Hands-Free Kitchen Mode">
+      <div class="kitchen-studio-layout">
+        <!-- Left/Main High-Contrast Step-by-Step Cook Deck -->
+        <div class="kitchen-stage card">
+          <div class="kitchen-stage-header">
+            <div>
+              <span class="section-eyebrow">COUNTERTOP HIGH-CONTRAST COOK VIEW</span>
+              <h2 id="kitchenRecipeTitle" class="kitchen-recipe-title">Select a Recipe to Cook</h2>
+              <p id="kitchenRecipeSubtitle" class="kitchen-recipe-subtitle"></p>
+            </div>
+            <div class="kitchen-voice-controls">
+              <button id="kitchenReadStepBtn" class="btn btn-primary" type="button">
+                🔊 Read Step Aloud
+              </button>
+              <button id="kitchenAutoVoiceBtn" class="btn btn-secondary" type="button" aria-pressed="false">
+                🎙️ Auto-Narrate: Off
+              </button>
+              <button id="kitchenTestChimeBtn" class="btn btn-secondary" type="button">
+                🔔 Test Kitchen Chime
+              </button>
+            </div>
+          </div>
+
+          <!-- Step Progress Strip -->
+          <div class="kitchen-progress-row">
+            <div id="kitchenStepPills" class="kitchen-step-pills"></div>
+            <span id="kitchenStepCounter" class="kitchen-step-counter">Step 1 of 3</span>
+          </div>
+
+          <!-- Giant Readable Active Step Card -->
+          <div id="kitchenActiveStepBox" class="kitchen-active-step-box">
+            <div class="step-badge-row">
+              <span id="kitchenActiveStepBadge" class="step-num-badge">STEP 1</span>
+              <h3 id="kitchenActiveStepTitle" class="kitchen-step-heading">Step Title</h3>
+            </div>
+            <p id="kitchenActiveStepText" class="kitchen-step-instruction"></p>
+            <div id="kitchenActiveStepTip" class="kitchen-science-tip"></div>
+            <div id="kitchenStepQuickTimerRow" class="kitchen-step-timers-row"></div>
+          </div>
+
+          <!-- Step Navigation Bar -->
+          <div class="kitchen-nav-bar">
+            <button id="kitchenPrevStepBtn" class="btn btn-secondary btn-lg" type="button">
+              ◀ Previous Step
+            </button>
+            <div class="kitchen-scaled-summary" id="kitchenServingsBadge">Scaled for 2× Servings</div>
+            <button id="kitchenNextStepBtn" class="btn btn-accent btn-lg" type="button">
+              Next Step ▶
+            </button>
+          </div>
+
+          <!-- Scaled Ingredients Checklist Inside Kitchen Mode -->
+          <div class="kitchen-mise-en-place">
+            <h4>🔪 Mise en Place &amp; Chemistry Substitutions (Tap to Check Off)</h4>
+            <div id="kitchenIngredientsChecklist" class="kitchen-ing-checklist"></div>
+          </div>
+        </div>
+
+        <!-- Right: Auto-Extracted Multi-Timer Dock -->
+        <aside class="timer-dock-panel card">
+          <div class="timer-dock-header">
+            <div>
+              <span class="section-eyebrow">AUTO-EXTRACTED FROM RECIPE STEPS</span>
+              <h3 class="panel-title">⏱️ Multi-Timer Deck</h3>
+            </div>
+            <div class="quick-add-timers">
+              <button class="btn btn-ghost btn-xs quick-timer-btn" data-sec="60" type="button">+1m</button>
+              <button class="btn btn-ghost btn-xs quick-timer-btn" data-sec="180" type="button">+3m</button>
+              <button class="btn btn-ghost btn-xs quick-timer-btn" data-sec="300" type="button">+5m</button>
+            </div>
+          </div>
+          <p class="helper-caption">
+            Every time duration in your recipe is automatically extracted below. Run multiple timers simultaneously with synthesized Web Audio chimes!
+          </p>
+          <div id="multiTimerDock" class="multi-timer-dock"></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 4: SMART GROCERY LIST & MEAL-PREP PLANNER ==================== -->
+    <section id="view-grocery" class="view-section" aria-label="Smart Grocery List and Meal Prep Planner">
+      <div class="grocery-layout">
+        <div class="card grocery-planner-card">
+          <span class="section-eyebrow">MEAL-PREP SELECTION</span>
+          <h2 class="section-title">📅 Select Recipes for Your Meal-Prep Plan</h2>
+          <p class="section-desc">
+            Toggle one or more auto-populated recipes below. Pantry Chef subtracts everything you already have in your pantry (plus active
+            chemistry substitutions!) and groups only the missing items by supermarket aisle.
+          </p>
+          <div id="mealPrepRecipeChecks" class="meal-prep-recipe-checks"></div>
+        </div>
+
+        <div class="card grocery-output-card">
+          <div class="grocery-output-header">
+            <div>
+              <span class="section-eyebrow">SUPERMARKET AISLE ORGANIZER</span>
+              <h3 class="panel-title">🛒 Smart Grocery List</h3>
+            </div>
+            <div class="grocery-export-btns">
+              <button id="copyGroceryBtn" class="btn btn-secondary" type="button">📋 Copy Markdown</button>
+              <button id="downloadGroceryBtn" class="btn btn-primary" type="button">⬇️ Export .md</button>
+            </div>
+          </div>
+          <div id="groceryCostBanner" class="grocery-cost-banner"></div>
+          <div id="groceryAislesContainer" class="grocery-aisles-container"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 5: SETTINGS ==================== -->
+    <section id="view-settings" class="view-section" aria-label="AI and Kitchen Studio Settings">
+      <div class="settings-card card">
+        <span class="section-eyebrow">VISION &amp; SYNTHESIS CONFIGURATION</span>
+        <h2 class="section-title">⚙️ AI Vision &amp; Kitchen Studio Settings</h2>
+        <p class="section-desc">
+          Pantry Chef works 100% offline out-of-the-box using its deterministic Culinary Alchemist &amp; RGB Shelf-Zone Heuristic,
+          and optionally connects to Local Ollama Vision (<code>moondream</code> / <code>llava</code>), OpenAI, or Google Gemini.
+        </p>
+
+        <form id="settingsForm" class="settings-form">
+          <div class="form-row">
+            <label for="settingProvider">AI &amp; Vision Provider</label>
+            <select id="settingProvider">
+              <option value="offline">Offline Deterministic Culinary Alchemist + Local Color Heuristic (Default)</option>
+              <option value="ollama">Local Ollama Vision (moondream / llava / llama3.2)</option>
+              <option value="openai">OpenAI Vision (gpt-4o-mini)</option>
+              <option value="gemini">Google Gemini Vision (gemini-2.5-flash)</option>
+            </select>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-row">
+              <label for="settingOllamaHost">Ollama Host URL</label>
+              <input id="settingOllamaHost" type="text" value="http://127.0.0.1:11434" />
+            </div>
+            <div class="form-row">
+              <label for="settingOllamaVisionModel">Ollama Vision Model</label>
+              <input id="settingOllamaVisionModel" type="text" value="moondream" />
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-row">
+              <label for="settingOpenAIKey">OpenAI API Key (optional)</label>
+              <input id="settingOpenAIKey" type="password" placeholder="sk-..." />
+            </div>
+            <div class="form-row">
+              <label for="settingGeminiKey">Google Gemini API Key (optional)</label>
+              <input id="settingGeminiKey" type="password" placeholder="AIza..." />
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <label class="checkbox-label">
+              <input id="settingVoiceEnabled" type="checkbox" checked />
+              Enable Web Speech API Voice Assistant in Kitchen Mode
+            </label>
+            <label class="checkbox-label">
+              <input id="settingChimeEnabled" type="checkbox" checked />
+              Enable Synthesized Web Audio Kitchen Timer Chimes
+            </label>
+          </div>
+
+          <div class="settings-actions">
+            <button id="saveSettingsBtn" class="btn btn-primary" type="submit">💾 Save Settings</button>
+            <span id="settingsStatusText" class="settings-status-text"></span>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== FRIDGE PHOTO SCANNER CONFIRMATION MODAL ==================== -->
+  <div id="scannerModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="scannerModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="section-eyebrow" id="scannerEngineBadge">VISION ENGINE</span>
+          <h3 id="scannerModalTitle" class="modal-title">📸 Fridge Photo Scanner — Confirm Spotted Ingredients</h3>
+        </div>
+        <button id="closeScannerModalBtn" class="btn btn-ghost btn-sm" type="button" aria-label="Close modal">✕</button>
+      </div>
+
+      <div class="scanner-modal-body">
+        <div class="scanner-preview-col">
+          <img id="scannerPreviewImg" src="/api/fridge/sample-photo.png" alt="Scanned Fridge Shelf Preview" class="scanner-preview-img" />
+          <p class="helper-caption">
+            Toggle checkboxes or adjust the expiration urgency badge before adding items to your fridge.
+          </p>
+        </div>
+        <div class="scanner-results-col">
+          <div id="scannedItemsList" class="scanned-items-list"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="cancelScannerModalBtn" class="btn btn-secondary" type="button">Cancel</button>
+        <button id="confirmScannedItemsBtn" class="btn btn-accent" type="button">
+          ✅ Add Spotted Items to My Fridge
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastBanner" class="toast-banner hidden" role="status" aria-live="polite"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
